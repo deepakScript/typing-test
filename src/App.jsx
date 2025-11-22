@@ -1,15 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 const sentences = [
-  "Hello World",
-  "This is the greates things ever",
-  "React is a good library",
-  "Typing fast is a useful skill",
-  "Hello World I'm Deepak Chhantal"
+  "Coding bhut achi hoti h.",
+  "hum bhut jayada ache h",
+  "react ek bhut he achi library h",
+  "Typing fast is a useful skill."
 ]
 
-const App = () => {
+function App() {
   const [text, setText] = useState("");
   const [input, setInput] = useState("");
   const [startTime, setStartTime] = useState(null);
@@ -19,17 +18,6 @@ const App = () => {
   const [timer, setTimer] = useState(60);
   const inputRef = useRef(null);
 
-
-
-  const resetTest = () => {
-    const random = sentences[Math.floor(Math.random() * sentences.length)];
-    setText(random);
-    setInput("");
-    setStartTime(null);
-    setEndTime(null);
-    setTimer(60);
-    inputRef.current.focus();
-  }
   useEffect(() => {
     resetTest();
   }, []);
@@ -38,36 +26,44 @@ const App = () => {
     let interval;
     if (startTime && !endTime && timer > 0) {
       interval = setInterval(() => {
-        setTimer((prev) => {
-          prev - 1;
-        })
+        setTimer((prev) => prev - 1);
       }, 1000);
     }
-
     if (timer === 0 && !result) {
       calculateResult(startTime, new Date(), true);
     }
-
     return () => clearInterval(interval);
-  }, [startTime, timer, endTime, result]);
+  }, [startTime, timer, endTime, result])
+
+  const resetTest = () => {
+    const random = sentences[Math.floor(Math.random() * sentences.length)];
+    setText(random);
+    setInput("");
+    setStartTime(null);
+    setEndTime(null);
+    setResult(null);
+    setTimer(60);
+    inputRef.current?.focus();
+  }
 
   const handleChange = (e) => {
-    const value = e.target.value;
-    setInput(value);
+    const val = e.target.value;
+    setInput(val);
 
-    if (!startTime && value.length > 0) {
+    if (!startTime && val.length > 0) {
       const now = new Date();
       setStartTime(now);
     }
-
-    if (value === text) {
+    if (val === text && text.length > 0) {
       const end = new Date();
       setEndTime(end);
-      calculateResult(startTime, end);
+      calculateResult(startTime, end)
     }
   }
 
   const calculateResult = (start, end, isTimeout = false) => {
+    if (!start) return;
+    
     const timeTaken = (end - start) / 1000;
     const words = text.trim().split(" ").length;
     const speed = Math.round((words / timeTaken) * 60);
@@ -98,14 +94,51 @@ const App = () => {
     });
   };
 
-
   return (
-    <div>
+    <>
+      <h1>💻 Typing Speed Tester</h1>
+      <div className='container'>
+        <p className='timer'>Time Left : {timer}s</p>
 
-    </div>
+        <div className='box'>
+          <p className='quote'>
+            {getHighlightedText()}
+          </p>
+          <textarea 
+            ref={inputRef} 
+            className='input' 
+            placeholder='Start typing here...' 
+            value={input} 
+            onChange={handleChange} 
+            disabled={result !== null || timer === 0} 
+          />
+          {result ? (
+            <div className='result'>
+              <p>Speed : {result.speed} WPM</p>
+              <p>Accuracy : {result.accuracy}%</p>
+              <p>Time Taken : {result.time} seconds</p>
+              <button onClick={resetTest}>Try Again</button>
+            </div>
+          ) : (
+            <p className='instruction'>Type the above sentence to test your speed.</p>
+          )}
+        </div>
+
+        {resultHistory.length > 0 && (
+          <div className='History'>
+            <h3>Past Results</h3>
+            <ul>
+              {resultHistory.map((r, i) => (
+                <li key={i}>
+                  <b>{i + 1}.</b> Speed : {r.speed} WPM | Accuracy : {r.accuracy}% | Time : {r.time}s
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </>
   )
 }
-
-
 
 export default App
